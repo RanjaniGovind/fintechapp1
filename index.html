@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NovaPay — Intelligent Finance</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #111118;
+      --surface2: #1a1a26;
+      --gold: #c9a84c;
+      --gold-light: #e8c96a;
+      --gold-pale: rgba(201,168,76,0.12);
+      --text: #f0ede6;
+      --muted: #7a7870;
+      --accent: #4c6ec9;
+      --green: #2ec48e;
+      --border: rgba(201,168,76,0.15);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+    }
+
+    /* ── Noise texture overlay ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.4;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.4rem 4rem;
+      background: linear-gradient(to bottom, rgba(10,10,15,0.95), transparent);
+      backdrop-filter: blur(4px);
+    }
+
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      letter-spacing: 0.02em;
+      color: var(--gold-light);
+    }
+    .logo span { color: var(--text); font-style: italic; }
+
+    .nav-links {
+      display: flex;
+      gap: 2.5rem;
+      list-style: none;
+    }
+    .nav-links a {
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--gold-light); }
+
+    .nav-cta {
+      background: transparent;
+      border: 1px solid var(--gold);
+      color: var(--gold-light);
+      padding: 0.6rem 1.6rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .nav-cta:hover { background: var(--gold); color: var(--bg); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      padding: 0 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* radial glow */
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: 10%;
+      right: -5%;
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-left { padding-right: 4rem; }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.8rem;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.2s forwards;
+    }
+    .eyebrow::before {
+      content: '';
+      display: block;
+      width: 28px;
+      height: 1px;
+      background: var(--gold);
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(3rem, 5vw, 5.2rem);
+      line-height: 1.08;
+      font-weight: 700;
+      margin-bottom: 1.6rem;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.4s forwards;
+    }
+    h1 em {
+      font-style: italic;
+      color: var(--gold-light);
+    }
+
+    .hero-desc {
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.8;
+      max-width: 440px;
+      margin-bottom: 2.8rem;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.6s forwards;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.8s forwards;
+    }
+
+    .btn-primary {
+      background: var(--gold);
+      color: var(--bg);
+      border: none;
+      padding: 0.9rem 2.4rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-primary:hover { background: var(--gold-light); transform: translateY(-1px); }
+
+    .btn-ghost {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 0.88rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: color 0.2s;
+    }
+    .btn-ghost:hover { color: var(--text); }
+    .btn-ghost svg { transition: transform 0.2s; }
+    .btn-ghost:hover svg { transform: translateX(3px); }
+
+    /* ── CARD MOCKUP ── */
+    .hero-right {
+      position: relative;
+      height: 560px;
+      opacity: 0;
+      animation: fadeIn 1.2s 0.5s forwards;
+    }
+
+    .card-stack {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 360px;
+      height: 220px;
+    }
+
+    .card {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 16px;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .card-back {
+      background: linear-gradient(135deg, #1c1c2e, #2a2040);
+      border: 1px solid rgba(76,110,201,0.3);
+      top: 40px;
+      right: -20px;
+      transform: rotate(6deg);
+      z-index: 0;
+    }
+
+    .card-front {
+      background: linear-gradient(135deg, #1e1a12, #2d2614);
+      border: 1px solid var(--border);
+      z-index: 1;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(201,168,76,0.1);
+    }
+
+    .card-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      color: var(--gold-light);
+      letter-spacing: 0.05em;
+    }
+
+    .card-chip {
+      width: 38px;
+      height: 28px;
+      background: linear-gradient(135deg, #c9a84c, #8a6b20);
+      border-radius: 4px;
+    }
+
+    .card-number {
+      font-size: 0.9rem;
+      letter-spacing: 0.25em;
+      color: rgba(240,237,230,0.6);
+    }
+
+    .card-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .card-name {
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .card-balance {
+      text-align: right;
+    }
+    .card-balance .label { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+    .card-balance .amount { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--gold-light); }
+
+    /* Floating stats */
+    .stat-bubble {
+      position: absolute;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.9rem 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+
+    .stat-bubble.left {
+      left: -60px;
+      bottom: 100px;
+      animation: float 4s ease-in-out infinite;
+    }
+
+    .stat-bubble.top {
+      right: 20px;
+      top: 40px;
+      animation: float 4s ease-in-out 1.5s infinite;
+    }
+
+    .stat-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+    .stat-icon.green { background: rgba(46,196,142,0.15); }
+    .stat-icon.blue { background: rgba(76,110,201,0.15); }
+
+    .stat-text .val { font-size: 1rem; font-weight: 500; }
+    .stat-text .val.green { color: var(--green); }
+    .stat-text .val.blue { color: #7a9ef0; }
+    .stat-text .lbl { font-size: 0.7rem; color: var(--muted); }
+
+    /* ── TICKER ── */
+    .ticker-wrap {
+      overflow: hidden;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 0.8rem 0;
+      background: var(--surface);
+    }
+    .ticker {
+      display: flex;
+      gap: 3rem;
+      animation: ticker 28s linear infinite;
+      white-space: nowrap;
+    }
+    .tick-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .tick-item .sym { color: var(--text); font-weight: 500; letter-spacing: 0.05em; }
+    .tick-item .up { color: var(--green); }
+    .tick-item .dn { color: #e05a5a; }
+
+    /* ── FEATURES ── */
+    .section {
+      padding: 7rem 4rem;
+    }
+
+    .section-header {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-bottom: 4rem;
+      align-items: end;
+    }
+
+    .section-tag {
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .section-tag::before { content: ''; display: block; width: 20px; height: 1px; background: var(--gold); }
+
+    h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 3.5vw, 3.2rem);
+      line-height: 1.15;
+    }
+    h2 em { font-style: italic; color: var(--gold-light); }
+
+    .section-desc {
+      color: var(--muted);
+      line-height: 1.9;
+      font-size: 0.95rem;
+      max-width: 380px;
+      align-self: end;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .feature-card {
+      background: var(--surface);
+      padding: 2.5rem;
+      transition: background 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(to right, var(--gold), transparent);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s;
+    }
+    .feature-card:hover { background: var(--surface2); }
+    .feature-card:hover::before { transform: scaleX(1); }
+
+    .feature-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 3.5rem;
+      color: rgba(201,168,76,0.08);
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 1.5rem;
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--gold-pale);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      font-size: 1.3rem;
+    }
+
+    .feature-card h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.25rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .feature-card p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.8;
+    }
+
+    /* ── STATS STRIP ── */
+    .stats-strip {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .stat-item {
+      padding: 3.5rem 3rem;
+      border-right: 1px solid var(--border);
+      position: relative;
+    }
+    .stat-item:last-child { border-right: none; }
+
+    .stat-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 3rem;
+      color: var(--gold-light);
+      margin-bottom: 0.4rem;
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* ── TESTIMONIALS ── */
+    .testimonials {
+      padding: 7rem 4rem;
+    }
+
+    .test-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-top: 4rem;
+    }
+
+    .test-card {
+      background: var(--surface);
+      padding: 2.5rem;
+    }
+
+    .stars { color: var(--gold); font-size: 0.9rem; margin-bottom: 1.2rem; }
+
+    .test-quote {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 1.1rem;
+      line-height: 1.65;
+      color: var(--text);
+      margin-bottom: 1.8rem;
+    }
+
+    .test-author {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      font-weight: 500;
+      font-family: 'Playfair Display', serif;
+    }
+
+    .author-info .name { font-size: 0.88rem; font-weight: 500; }
+    .author-info .role { font-size: 0.75rem; color: var(--muted); }
+
+    /* ── CTA ── */
+    .cta-section {
+      margin: 0 4rem 7rem;
+      background: linear-gradient(135deg, #1a1508, #0f1523);
+      border: 1px solid var(--border);
+      padding: 5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      top: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 500px;
+      height: 300px;
+      background: radial-gradient(ellipse, rgba(201,168,76,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .cta-section h2 { margin-bottom: 1.2rem; }
+    .cta-section p { color: var(--muted); margin-bottom: 2.5rem; font-size: 1rem; }
+
+    .cta-group { display: flex; gap: 1rem; justify-content: center; }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 3rem 4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+    .footer-links a {
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 0.8rem;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--gold-light); }
+
+    .footer-copy {
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-10px); }
+    }
+
+    @keyframes ticker {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* Scroll reveal */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.7s, transform 0.7s;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="logo">Nova<span>Pay</span></div>
+    <ul class="nav-links">
+      <li><a href="#">Products</a></li>
+      <li><a href="#">Markets</a></li>
+      <li><a href="#">Wealth</a></li>
+      <li><a href="#">About</a></li>
+    </ul>
+    <button class="nav-cta">Open Account</button>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-left">
+      <div class="eyebrow">Intelligent Finance Platform</div>
+      <h1>Money that<br/><em>works as hard</em><br/>as you do.</h1>
+      <p class="hero-desc">A premium financial platform built for modern investors. Manage, grow, and protect your wealth with tools shaped by AI and refined by purpose.</p>
+      <div class="hero-actions">
+        <button class="btn-primary">Get Started Free</button>
+        <button class="btn-ghost">
+          Explore Platform
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="hero-right">
+      <div class="card-stack">
+        <div class="card card-back"></div>
+        <div class="card card-front">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div class="card-logo">NovaPay</div>
+            <div class="card-chip"></div>
+          </div>
+          <div class="card-number">4892  ••••  ••••  7741</div>
+          <div class="card-bottom">
+            <div class="card-name">Alexandra Chen</div>
+            <div class="card-balance">
+              <div class="label">Balance</div>
+              <div class="amount">$48,320</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-bubble left">
+        <div class="stat-icon green">📈</div>
+        <div class="stat-text">
+          <div class="val green">+12.4%</div>
+          <div class="lbl">Portfolio Growth</div>
+        </div>
+      </div>
+
+      <div class="stat-bubble top">
+        <div class="stat-icon blue">⚡</div>
+        <div class="stat-text">
+          <div class="val blue">$1,240</div>
+          <div class="lbl">Saved This Month</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TICKER -->
+  <div class="ticker-wrap">
+    <div class="ticker" id="ticker"></div>
+  </div>
+
+  <!-- FEATURES -->
+  <section class="section">
+    <div class="section-header reveal">
+      <div>
+        <div class="section-tag">Core Features</div>
+        <h2>Built for the way<br/>you <em>actually</em> live.</h2>
+      </div>
+      <p class="section-desc">Every feature is designed around real-world financial behaviour — not just what looks good on a dashboard.</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-num">01</div>
+        <div class="feature-icon">🧠</div>
+        <h3>AI Wealth Advisor</h3>
+        <p>Real-time portfolio recommendations powered by machine learning, personalised to your financial goals and risk profile.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-num">02</div>
+        <div class="feature-icon">🔐</div>
+        <h3>Vault Security</h3>
+        <p>Bank-grade encryption with biometric authentication. Your assets are protected by military-standard infrastructure.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-num">03</div>
+        <div class="feature-icon">⚡</div>
+        <h3>Instant Transfers</h3>
+        <p>Send money globally in seconds. Zero hidden fees. Real exchange rates. Supported in 180+ countries.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-num">04</div>
+        <div class="feature-icon">📊</div>
+        <h3>Smart Analytics</h3>
+        <p>Deep-dive into your spending habits with predictive forecasts that help you stay ahead of every financial decision.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-num">05</div>
+        <div class="feature-icon">🌍</div>
+        <h3>Global Markets</h3>
+        <p>Access stocks, ETFs, crypto, and commodities in one unified interface. Trade at the speed of modern markets.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-num">06</div>
+        <div class="feature-icon">🎯</div>
+        <h3>Goal Autopilot</h3>
+        <p>Set a goal, choose a timeline. NovaPay builds and executes the savings plan automatically around your life.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS STRIP -->
+  <div class="stats-strip reveal">
+    <div class="stat-item">
+      <div class="stat-number">$4.2B</div>
+      <div class="stat-label">Assets Managed</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">2.1M</div>
+      <div class="stat-label">Active Users</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">180+</div>
+      <div class="stat-label">Countries Supported</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">99.9%</div>
+      <div class="stat-label">Uptime SLA</div>
+    </div>
+  </div>
+
+  <!-- TESTIMONIALS -->
+  <section class="testimonials">
+    <div class="section-header reveal">
+      <div>
+        <div class="section-tag">Testimonials</div>
+        <h2>What our members<br/><em>say about us.</em></h2>
+      </div>
+    </div>
+    <div class="test-grid">
+      <div class="test-card reveal">
+        <div class="stars">★★★★★</div>
+        <p class="test-quote">"NovaPay completely changed how I think about investing. The AI advisor caught a market shift I would have missed and saved my portfolio thousands."</p>
+        <div class="test-author">
+          <div class="avatar" style="background:var(--gold-pale);color:var(--gold-light);">A</div>
+          <div class="author-info">
+            <div class="name">Alexandra Chen</div>
+            <div class="role">Portfolio Investor, Singapore</div>
+          </div>
+        </div>
+      </div>
+      <div class="test-card reveal">
+        <div class="stars">★★★★★</div>
+        <p class="test-quote">"I've used six different finance apps and nothing compares. The interface is beautiful, the transfers are instant, and the analytics are genuinely useful."</p>
+        <div class="test-author">
+          <div class="avatar" style="background:rgba(76,110,201,0.15);color:#7a9ef0;">M</div>
+          <div class="author-info">
+            <div class="name">Marcus Rivera</div>
+            <div class="role">Entrepreneur, Madrid</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <div class="cta-section reveal">
+    <div class="section-tag" style="justify-content:center;">Start Today</div>
+    <h2>Your financial future<br/><em>starts here.</em></h2>
+    <p>Join over 2 million people who trust NovaPay with their financial lives.</p>
+    <div class="cta-group">
+      <button class="btn-primary">Open Free Account</button>
+      <button class="nav-cta">Schedule a Demo</button>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="logo">Nova<span>Pay</span></div>
+    <ul class="footer-links">
+      <li><a href="#">Privacy</a></li>
+      <li><a href="#">Terms</a></li>
+      <li><a href="#">Security</a></li>
+      <li><a href="#">Support</a></li>
+    </ul>
+    <div class="footer-copy">© 2026 NovaPay Inc.</div>
+  </footer>
+
+  <script>
+    // Ticker
+    const tickers = [
+      { sym: 'BTC', price: '62,441', change: '+3.2%', up: true },
+      { sym: 'ETH', price: '3,128', change: '+1.8%', up: true },
+      { sym: 'AAPL', price: '211.40', change: '-0.4%', up: false },
+      { sym: 'TSLA', price: '182.90', change: '+5.1%', up: true },
+      { sym: 'NVDA', price: '840.30', change: '+2.9%', up: true },
+      { sym: 'MSFT', price: '418.60', change: '+0.7%', up: true },
+      { sym: 'SOL',  price: '178.20', change: '-1.2%', up: false },
+      { sym: 'AMZN', price: '196.80', change: '+1.4%', up: true },
+      { sym: 'SPY',  price: '524.70', change: '+0.6%', up: true },
+      { sym: 'GOLD', price: '2,312', change: '-0.2%', up: false },
+    ];
+
+    const tickerEl = document.getElementById('ticker');
+    const doubled = [...tickers, ...tickers];
+    tickerEl.innerHTML = doubled.map(t => `
+      <span class="tick-item">
+        <span class="sym">${t.sym}</span>
+        <span>$${t.price}</span>
+        <span class="${t.up ? 'up' : 'dn'}">${t.change}</span>
+      </span>
+    `).join('');
+
+    // Scroll reveal
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach((e, i) => {
+        if (e.isIntersecting) {
+          e.target.style.transitionDelay = `${i * 0.06}s`;
+          e.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.12 });
+
+    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+  </script>
+</body>
+</html>
